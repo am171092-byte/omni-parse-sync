@@ -78,15 +78,25 @@ export default function Home() {
             })}
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <div className="pt-8">
-            <Button 
-              size="lg"
-              onClick={() => navigate('/trigger-agent')}
-              className="px-8 py-3 text-lg"
-            >
-              Launch Agent
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg"
+                onClick={() => navigate('/trigger-agent')}
+                className="px-8 py-3 text-lg"
+              >
+                Launch Agent
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => navigate('/fulfillment')}
+                className="px-8 py-3 text-lg"
+              >
+                View Fulfillment List
+              </Button>
+            </div>
           </div>
         </div>
       </main>

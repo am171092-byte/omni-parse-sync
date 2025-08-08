@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useOrderContext } from "@/contexts/OrderContext";
 import { 
   Inbox, 
   ChevronDown, 
@@ -35,9 +36,11 @@ interface ParsedOrder {
 export default function TriggerAgent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addToFulfillment } = useOrderContext();
   const [isScanning, setIsScanning] = useState(false);
   const [parsedOrders, setParsedOrders] = useState<ParsedOrder[]>([]);
   const [openOrders, setOpenOrders] = useState<{ [key: string]: boolean }>({});
+  const [publishedOrderId, setPublishedOrderId] = useState<string | null>(null);
 
   const mockOrders: ParsedOrder[] = [
     {
@@ -166,6 +169,12 @@ export default function TriggerAgent() {
     // Simulate publishing to ERP
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    const orderToPublish = parsedOrders.find(order => order.id === orderId);
+    if (orderToPublish) {
+      // Add to fulfillment list
+      addToFulfillment(orderToPublish);
+    }
+    
     setParsedOrders(prev => 
       prev.map(order => 
         order.id === orderId 
@@ -173,6 +182,8 @@ export default function TriggerAgent() {
           : order
       )
     );
+
+    setPublishedOrderId(orderId);
 
     toast({
       title: "✅ Order published successfully",
@@ -343,12 +354,22 @@ export default function TriggerAgent() {
                         </Collapsible>
 
                         {/* Publish Button */}
-                        <div className="flex justify-end">
+                        <div className="flex justify-end space-x-2">
                           {order.published ? (
-                            <Button variant="outline" disabled>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Published
-                            </Button>
+                            <>
+                              <Button variant="outline" disabled>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Published
+                              </Button>
+                              {publishedOrderId === order.id && (
+                                <Button 
+                                  onClick={() => navigate('/fulfillment')}
+                                  variant="default"
+                                >
+                                  Go to Fulfillment List
+                                </Button>
+                              )}
+                            </>
                           ) : (
                             <Button 
                               onClick={() => handlePublishOrder(order.id)}
