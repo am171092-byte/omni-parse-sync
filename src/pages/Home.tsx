@@ -8,6 +8,8 @@ import {
   BarChart, 
   Zap 
 } from "lucide-react";
+import beforeAiImage from "@/assets/before-ai.jpg";
+import afterAiImage from "@/assets/after-ai.jpg";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -58,6 +60,42 @@ export default function Home() {
             </p>
           </div>
 
+          {/* Before/After Illustrations */}
+          <div className="grid md:grid-cols-2 gap-8 mt-12">
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold text-center text-destructive">Before AI</h3>
+              <div className="relative rounded-lg overflow-hidden border shadow-lg">
+                <img 
+                  src={beforeAiImage} 
+                  alt="Chaotic manual order processing" 
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="text-white text-sm font-medium">
+                    Manual processing, overwhelmed staff, scattered data
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold text-center text-primary">After AI</h3>
+              <div className="relative rounded-lg overflow-hidden border shadow-lg">
+                <img 
+                  src={afterAiImage} 
+                  alt="Streamlined AI-powered order processing" 
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="text-white text-sm font-medium">
+                    Automated processing, AI extraction, streamlined workflow
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Features */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
             {features.map((feature, index) => {
@@ -65,7 +103,7 @@ export default function Home() {
               return (
                 <div 
                   key={index}
-                  className="flex items-start space-x-3 p-4 rounded-lg bg-card border"
+                  className="flex items-start space-x-3 p-4 rounded-lg bg-card border hover:shadow-md transition-all duration-200"
                 >
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Icon className="h-4 w-4 text-primary" />

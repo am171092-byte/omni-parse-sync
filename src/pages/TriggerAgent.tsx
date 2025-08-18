@@ -6,6 +6,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useOrderContext } from "@/contexts/OrderContext";
+import { LoadingSteps } from "@/components/ui/loading-steps";
+import { EmailSourceModal } from "@/components/modals/EmailSourceModal";
+import { EditOrderModal } from "@/components/modals/EditOrderModal";
+import { generateMockOrders, ParsedOrder } from "@/data/mockOrders";
 import { 
   Inbox, 
   ChevronDown, 
@@ -16,22 +20,12 @@ import {
   FileText,
   Loader2,
   MessageSquare,
-  Phone
+  Phone,
+  Eye,
+  Edit3
 } from "lucide-react";
 
-interface ParsedOrder {
-  id: string;
-  customerName: string;
-  productName: string;
-  productCode: string;
-  quantity: number;
-  price: number;
-  deliveryAddress: string;
-  source: string;
-  confidence: number;
-  json: any;
-  published: boolean;
-}
+// ParsedOrder interface is now imported from mockOrders.ts
 
 export default function TriggerAgent() {
   const navigate = useNavigate();
@@ -41,127 +35,36 @@ export default function TriggerAgent() {
   const [parsedOrders, setParsedOrders] = useState<ParsedOrder[]>([]);
   const [openOrders, setOpenOrders] = useState<{ [key: string]: boolean }>({});
   const [publishedOrderId, setPublishedOrderId] = useState<string | null>(null);
+  const [sourceModalOpen, setSourceModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<ParsedOrder | null>(null);
+  const [currentStep, setCurrentStep] = useState<string>("");
 
-  const mockOrders: ParsedOrder[] = [
-    {
-      id: "ORD-001",
-      customerName: "Acme Corp",
-      productName: "Industrial Widgets",
-      productCode: "IW-2024",
-      quantity: 150,
-      price: 29.99,
-      deliveryAddress: "123 Business St, Commerce City, CA 90210",
-      source: "Email",
-      confidence: 0.96,
-      published: false,
-      json: {
-        orderId: "ORD-001",
-        customer: {
-          name: "Acme Corp",
-          contact: "john.doe@acmecorp.com"
-        },
-        items: [{
-          productCode: "IW-2024",
-          productName: "Industrial Widgets",
-          quantity: 150,
-          unitPrice: 29.99,
-          totalPrice: 4498.50
-        }],
-        delivery: {
-          address: "123 Business St, Commerce City, CA 90210",
-          requestedDate: "2024-01-15"
-        },
-        metadata: {
-          source: "email",
-          confidence: 0.96,
-          extractedAt: "2024-01-10T10:30:00Z"
-        }
-      }
-    },
-    {
-      id: "ORD-002",
-      customerName: "TechFlow Solutions",
-      productName: "Premium Connectors",
-      productCode: "PC-5500",
-      quantity: 75,
-      price: 45.00,
-      deliveryAddress: "456 Innovation Blvd, Tech Valley, NY 12180",
-      source: "WhatsApp",
-      confidence: 0.89,
-      published: false,
-      json: {
-        orderId: "ORD-002",
-        customer: {
-          name: "TechFlow Solutions",
-          contact: "+1-555-0123"
-        },
-        items: [{
-          productCode: "PC-5500",
-          productName: "Premium Connectors",
-          quantity: 75,
-          unitPrice: 45.00,
-          totalPrice: 3375.00
-        }],
-        delivery: {
-          address: "456 Innovation Blvd, Tech Valley, NY 12180",
-          requestedDate: "2024-01-20"
-        },
-        metadata: {
-          source: "whatsapp",
-          confidence: 0.89,
-          extractedAt: "2024-01-10T11:15:00Z"
-        }
-      }
-    },
-    {
-      id: "ORD-003",
-      customerName: "Global Manufacturing Inc",
-      productName: "Steel Components",
-      productCode: "SC-8800",
-      quantity: 200,
-      price: 125.50,
-      deliveryAddress: "789 Industrial Park, Manufacturing City, TX 77001",
-      source: "Phone Call",
-      confidence: 0.92,
-      published: false,
-      json: {
-        orderId: "ORD-003",
-        customer: {
-          name: "Global Manufacturing Inc",
-          contact: "procurement@globalmanuf.com"
-        },
-        items: [{
-          productCode: "SC-8800",
-          productName: "Steel Components",
-          quantity: 200,
-          unitPrice: 125.50,
-          totalPrice: 25100.00
-        }],
-        delivery: {
-          address: "789 Industrial Park, Manufacturing City, TX 77001",
-          requestedDate: "2024-01-25"
-        },
-        metadata: {
-          source: "phone_transcript",
-          confidence: 0.92,
-          extractedAt: "2024-01-10T14:45:00Z"
-        }
-      }
-    }
+  const loadingSteps = [
+    { message: "Connecting to email inbox...", duration: 1500 },
+    { message: "Scanning for new messages...", duration: 2000 },
+    { message: "Parsing email content...", duration: 1800 },
+    { message: "Extracting attachments...", duration: 2200 },
+    { message: "Analyzing order data...", duration: 1500 },
+    { message: "Validating inventory...", duration: 1200 },
+    { message: "Generating structured data...", duration: 1000 },
+    { message: "Ready to review orders!", duration: 500 }
   ];
 
-  const handleScanInbox = async () => {
+  const handleScanInbox = () => {
     setIsScanning(true);
-    
-    // Simulate scanning process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setParsedOrders(mockOrders);
+    setCurrentStep("scanning");
+  };
+
+  const handleLoadingComplete = () => {
+    const orders = generateMockOrders(50);
+    setParsedOrders(orders);
     setIsScanning(false);
+    setCurrentStep("");
     
     toast({
       title: "Inbox Scan Complete",
-      description: `Found ${mockOrders.length} orders to process`,
+      description: `Found ${orders.length} orders to process`,
     });
   };
 
@@ -196,6 +99,28 @@ export default function TriggerAgent() {
       ...prev,
       [orderId]: !prev[orderId]
     }));
+  };
+
+  const handleViewSource = (order: ParsedOrder) => {
+    setSelectedOrder(order);
+    setSourceModalOpen(true);
+  };
+
+  const handleEditOrder = (order: ParsedOrder) => {
+    setSelectedOrder(order);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditedOrder = (updatedOrder: ParsedOrder) => {
+    setParsedOrders(prev => 
+      prev.map(order => 
+        order.id === updatedOrder.id ? updatedOrder : order
+      )
+    );
+    toast({
+      title: "Order Updated",
+      description: `Changes saved for order ${updatedOrder.id}`,
+    });
   };
 
   const getSourceIcon = (source: string) => {
@@ -234,157 +159,236 @@ export default function TriggerAgent() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Loading Steps */}
+          {isScanning && currentStep === "scanning" && (
+            <div className="flex justify-center py-12">
+              <LoadingSteps 
+                steps={loadingSteps} 
+                onComplete={handleLoadingComplete}
+              />
+            </div>
+          )}
+
           {/* Scan Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Inbox className="h-5 w-5" />
-                <span>Email Inbox Scanner</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Scan your connected email inbox for new orders. The AI will parse email bodies and attachments to extract structured order data.
-              </p>
-              <Button 
-                onClick={handleScanInbox}
-                disabled={isScanning}
-                size="lg"
-              >
-                {isScanning ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Scanning Inbox...
-                  </>
-                ) : (
-                  <>
-                    <Inbox className="h-4 w-4 mr-2" />
-                    Scan Inbox
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+          {!isScanning && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Inbox className="h-5 w-5" />
+                  <span>Email Inbox Scanner</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-muted-foreground mb-4">
+                      Scan your connected email inbox for new orders. The AI will parse email bodies and attachments to extract structured order data.
+                    </p>
+                    <Button 
+                      onClick={handleScanInbox}
+                      disabled={isScanning}
+                      size="lg"
+                      className="w-full md:w-auto"
+                    >
+                      <Inbox className="h-4 w-4 mr-2" />
+                      Scan Inbox
+                    </Button>
+                  </div>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">What we'll scan:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Email body content</li>
+                      <li>• PDF attachments</li>
+                      <li>• Word documents</li>
+                      <li>• Excel spreadsheets</li>
+                      <li>• Image files with text</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Parsed Orders */}
           {parsedOrders.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">
-                Parsed Orders ({parsedOrders.length})
-              </h2>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-foreground">
+                  Parsed Orders ({parsedOrders.length})
+                </h2>
+                <div className="text-sm text-muted-foreground">
+                  Total Value: ${parsedOrders.reduce((sum, order) => sum + (order.quantity * order.price), 0).toFixed(2)}
+                </div>
+              </div>
               
-              {parsedOrders.map((order) => {
-                const SourceIcon = getSourceIcon(order.source);
-                return (
-                  <Card key={order.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <SourceIcon className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{order.customerName}</CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {order.productName} (Code: {order.productCode})
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="secondary">
-                            {Math.round(order.confidence * 100)}% confidence
-                          </Badge>
-                          <Badge variant="outline">
-                            {order.source}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Quantity</p>
-                          <p className="font-medium">{order.quantity}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Unit Price</p>
-                          <p className="font-medium">${order.price}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total</p>
-                          <p className="font-medium">${(order.quantity * order.price).toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Status</p>
-                          {order.published ? (
-                            <Badge variant="success">Published</Badge>
-                          ) : (
-                            <Badge variant="warning">Pending</Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Delivery Address</p>
-                          <p className="text-sm">{order.deliveryAddress}</p>
-                        </div>
-
-                        {/* JSON Collapsible */}
-                        <Collapsible 
-                          open={openOrders[order.id]} 
-                          onOpenChange={() => toggleOrderDetails(order.id)}
-                        >
-                          <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="p-0 h-auto">
-                              {openOrders[order.id] ? (
-                                <ChevronDown className="h-4 w-4 mr-1" />
+              <div className="grid gap-4">
+                {parsedOrders.map((order) => {
+                  const SourceIcon = getSourceIcon(order.source);
+                  return (
+                    <Card key={order.id} className="hover:shadow-md transition-all duration-200">
+                      <Collapsible 
+                        open={openOrders[order.id]} 
+                        onOpenChange={() => toggleOrderDetails(order.id)}
+                      >
+                        <CardHeader className="cursor-pointer" onClick={() => toggleOrderDetails(order.id)}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <SourceIcon className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <CardTitle className="text-lg">{order.customerName}</CardTitle>
+                                  {openOrders[order.id] ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {order.productName} • Qty: {order.quantity} • ${(order.quantity * order.price).toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="secondary">
+                                {Math.round(order.confidence * 100)}% confidence
+                              </Badge>
+                              <Badge variant="outline">
+                                {order.source}
+                              </Badge>
+                              {order.published ? (
+                                <Badge variant="success">Published</Badge>
                               ) : (
-                                <ChevronRight className="h-4 w-4 mr-1" />
+                                <Badge variant="warning">Pending</Badge>
                               )}
-                              View JSON
-                            </Button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="mt-2">
-                            <pre className="bg-muted p-3 rounded-md text-xs overflow-x-auto">
-                              {JSON.stringify(order.json, null, 2)}
-                            </pre>
-                          </CollapsibleContent>
-                        </Collapsible>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        
+                        <CollapsibleContent>
+                          <CardContent className="pt-0">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-muted rounded-lg">
+                              <div>
+                                <p className="text-sm text-muted-foreground">Product Code</p>
+                                <p className="font-medium">{order.productCode}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">Quantity</p>
+                                <p className="font-medium">{order.quantity}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">Unit Price</p>
+                                <p className="font-medium">${order.price}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">Total Value</p>
+                                <p className="font-medium text-primary">${(order.quantity * order.price).toFixed(2)}</p>
+                              </div>
+                            </div>
 
-                        {/* Publish Button */}
-                        <div className="flex justify-end space-x-2">
-                          {order.published ? (
-                            <>
-                              <Button variant="outline" disabled>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Published
-                              </Button>
-                              {publishedOrderId === order.id && (
-                                <Button 
-                                  onClick={() => navigate('/fulfillment')}
-                                  variant="default"
-                                >
-                                  Go to Fulfillment List
-                                </Button>
-                              )}
-                            </>
-                          ) : (
-                            <Button 
-                              onClick={() => handlePublishOrder(order.id)}
-                              variant="default"
-                            >
-                              Verify & Publish
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Delivery Address</p>
+                                <p className="text-sm bg-background p-2 rounded border">{order.deliveryAddress}</p>
+                              </div>
+
+                              {/* JSON Collapsible */}
+                              <details className="group">
+                                <summary className="cursor-pointer text-sm font-medium hover:text-primary">
+                                  View JSON Data
+                                </summary>
+                                <div className="mt-2">
+                                  <pre className="bg-background border p-3 rounded-md text-xs overflow-x-auto max-h-64">
+                                    {JSON.stringify(order.json, null, 2)}
+                                  </pre>
+                                </div>
+                              </details>
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-wrap gap-2 justify-between items-center pt-4 border-t">
+                                <div className="flex gap-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewSource(order);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Source
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditOrder(order);
+                                    }}
+                                    disabled={order.published}
+                                  >
+                                    <Edit3 className="h-4 w-4 mr-2" />
+                                    Edit Order
+                                  </Button>
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                  {order.published ? (
+                                    <>
+                                      <Button variant="outline" disabled size="sm">
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Published
+                                      </Button>
+                                      {publishedOrderId === order.id && (
+                                        <Button 
+                                          onClick={() => navigate('/fulfillment')}
+                                          size="sm"
+                                        >
+                                          Go to Fulfillment List
+                                        </Button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <Button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePublishOrder(order.id);
+                                      }}
+                                      size="sm"
+                                    >
+                                      Verify & Publish
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
+          )}
+
+          {/* Modals */}
+          {selectedOrder && (
+            <>
+              <EmailSourceModal
+                isOpen={sourceModalOpen}
+                onClose={() => setSourceModalOpen(false)}
+                orderData={selectedOrder}
+              />
+              <EditOrderModal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                order={selectedOrder}
+                onSave={handleSaveEditedOrder}
+              />
+            </>
           )}
         </div>
       </main>
