@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/layout/Navbar";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { OrderVolumeChart } from "@/components/dashboard/OrderVolumeChart";
+import { InventoryChart } from "@/components/dashboard/InventoryChart";
 import { 
   Package, 
   TrendingUp, 
@@ -11,7 +15,9 @@ import {
   Inbox,
   CheckCircle,
   ArrowLeft,
-  Bot
+  Bot,
+  Users,
+  ShoppingCart
 } from "lucide-react";
 
 interface Order {
@@ -107,28 +113,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground">Order Dashboard</h1>
-          </div>
-          <Button 
-            onClick={() => navigate('/trigger-agent')}
-          >
-            <Bot className="h-4 w-4 mr-2" />
-            Go to Agent
-          </Button>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">

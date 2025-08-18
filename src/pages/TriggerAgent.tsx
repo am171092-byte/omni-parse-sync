@@ -10,6 +10,7 @@ import { LoadingSteps } from "@/components/ui/loading-steps";
 import { EmailSourceModal } from "@/components/modals/EmailSourceModal";
 import { EditOrderModal } from "@/components/modals/EditOrderModal";
 import { generateMockOrders, ParsedOrder } from "@/data/mockOrders";
+import { Navbar } from "@/components/layout/Navbar";
 import { 
   Inbox, 
   ChevronDown, 
@@ -41,14 +42,13 @@ export default function TriggerAgent() {
   const [currentStep, setCurrentStep] = useState<string>("");
 
   const loadingSteps = [
-    { message: "Connecting to email inbox...", duration: 1500 },
-    { message: "Scanning for new messages...", duration: 2000 },
-    { message: "Parsing email content...", duration: 1800 },
-    { message: "Extracting attachments...", duration: 2200 },
-    { message: "Analyzing order data...", duration: 1500 },
-    { message: "Validating inventory...", duration: 1200 },
-    { message: "Generating structured data...", duration: 1000 },
-    { message: "Ready to review orders!", duration: 500 }
+    { message: "Connecting to inbox...", duration: 1500 },
+    { message: "Scanning unread emails...", duration: 2000 },
+    { message: "Parsing attachments...", duration: 1800 },
+    { message: "Extracting data into structured format...", duration: 2200 },
+    { message: "Validating inventory availability...", duration: 1500 },
+    { message: "Generating structured JSON...", duration: 1200 },
+    { message: "Ready for review...", duration: 1000 }
   ];
 
   const handleScanInbox = () => {
@@ -89,8 +89,8 @@ export default function TriggerAgent() {
     setPublishedOrderId(orderId);
 
     toast({
-      title: "✅ Order published successfully",
-      description: `Order ${orderId} has been sent to the ERP system`,
+      title: "✅ Order Published Successfully",
+      description: `Order ${orderId} has been sent to Adobe Commerce for fulfillment`,
     });
   };
 
@@ -134,28 +134,7 @@ export default function TriggerAgent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground">Scan Inbox for Orders</h1>
-          </div>
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/dashboard')}
-          >
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
@@ -351,15 +330,15 @@ export default function TriggerAgent() {
                                       )}
                                     </>
                                   ) : (
-                                    <Button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePublishOrder(order.id);
-                                      }}
-                                      size="sm"
-                                    >
-                                      Verify & Publish
-                                    </Button>
+                                     <Button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handlePublishOrder(order.id);
+                                       }}
+                                       size="sm"
+                                     >
+                                       Verify & Publish to Adobe Commerce
+                                     </Button>
                                   )}
                                 </div>
                               </div>
