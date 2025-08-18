@@ -8,8 +8,8 @@ import {
   BarChart, 
   Zap 
 } from "lucide-react";
-import beforeAiImage from "@/assets/before-ai.jpg";
-import afterAiImage from "@/assets/after-ai.jpg";
+import beforeAiImage from "@/assets/before-ai-cartoon.jpg";
+import afterAiImage from "@/assets/after-ai-cartoon.jpg";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -48,49 +48,58 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          {/* Hero Section */}
-          <div className="space-y-6">
-            <h1 className="text-5xl font-bold text-foreground">
-              Omni Channel Order Tracker
-            </h1>
-            
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              This AI-powered tool helps B2B companies collect, structure, and manage sales orders from multiple channels including Email, WhatsApp, and Phone calls. It extracts key order information and generates structured JSON for seamless ERP integration (SAP, Microsoft Dynamics, etc.). It also analyzes inventory risks based on order trends.
-            </p>
-          </div>
-
-          {/* Before/After Illustrations */}
-          <div className="grid md:grid-cols-2 gap-8 mt-12">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-center text-destructive">Before AI</h3>
-              <div className="relative rounded-lg overflow-hidden border shadow-lg">
-                <img 
-                  src={beforeAiImage} 
-                  alt="Chaotic manual order processing" 
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-white text-sm font-medium">
-                    Manual processing, overwhelmed staff, scattered data
-                  </p>
+        <div className="max-w-6xl mx-auto text-center space-y-8">
+          {/* Hero Section with Side Illustrations */}
+          <div className="relative">
+            <div className="grid lg:grid-cols-5 gap-8 items-center">
+              {/* Left Illustration - Before */}
+              <div className="lg:col-span-1 order-2 lg:order-1">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-destructive">Before AI</h3>
+                  <div className="relative rounded-lg overflow-hidden border shadow-lg bg-card">
+                    <img 
+                      src={beforeAiImage} 
+                      alt="Manual order processing chaos" 
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-white text-xs font-medium text-center">
+                        Manual chaos
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-center text-primary">After AI</h3>
-              <div className="relative rounded-lg overflow-hidden border shadow-lg">
-                <img 
-                  src={afterAiImage} 
-                  alt="Streamlined AI-powered order processing" 
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-white text-sm font-medium">
-                    Automated processing, AI extraction, streamlined workflow
-                  </p>
+
+              {/* Center Content */}
+              <div className="lg:col-span-3 order-1 lg:order-2 space-y-6">
+                <h1 className="text-4xl lg:text-5xl font-bold text-foreground">
+                  Omni Channel Order Tracker
+                </h1>
+                
+                <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto">
+                  This AI-powered tool helps B2B companies collect, structure, and manage sales orders from multiple channels including Email, WhatsApp, and Phone calls. It extracts key order information and generates structured JSON for seamless ERP integration (SAP, Microsoft Dynamics, etc.). It also analyzes inventory risks based on order trends.
+                </p>
+              </div>
+
+              {/* Right Illustration - After */}
+              <div className="lg:col-span-1 order-3 lg:order-3">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-primary">After AI</h3>
+                  <div className="relative rounded-lg overflow-hidden border shadow-lg bg-card">
+                    <img 
+                      src={afterAiImage} 
+                      alt="Streamlined AI automation" 
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-white text-xs font-medium text-center">
+                        AI automation
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
