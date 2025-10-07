@@ -13,18 +13,16 @@ import { generateMockOrders, ParsedOrder } from "@/data/mockOrders";
 import { Navbar } from "@/components/layout/Navbar";
 import { 
   Inbox, 
-  ChevronDown, 
-  ChevronRight, 
   CheckCircle, 
-  ArrowLeft,
   Mail,
   FileText,
-  Loader2,
   MessageSquare,
   Phone,
   Eye,
-  Edit3
+  FileJson
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ParsedOrder interface is now imported from mockOrders.ts
 
@@ -34,7 +32,6 @@ export default function TriggerAgent() {
   const { addToFulfillment } = useOrderContext();
   const [isScanning, setIsScanning] = useState(false);
   const [parsedOrders, setParsedOrders] = useState<ParsedOrder[]>([]);
-  const [openOrders, setOpenOrders] = useState<{ [key: string]: boolean }>({});
   const [publishedOrderId, setPublishedOrderId] = useState<string | null>(null);
   const [sourceModalOpen, setSourceModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -94,19 +91,12 @@ export default function TriggerAgent() {
     });
   };
 
-  const toggleOrderDetails = (orderId: string) => {
-    setOpenOrders(prev => ({
-      ...prev,
-      [orderId]: !prev[orderId]
-    }));
-  };
-
   const handleViewSource = (order: ParsedOrder) => {
     setSelectedOrder(order);
     setSourceModalOpen(true);
   };
 
-  const handleEditOrder = (order: ParsedOrder) => {
+  const handleViewJSON = (order: ParsedOrder) => {
     setSelectedOrder(order);
     setEditModalOpen(true);
   };
@@ -189,168 +179,117 @@ export default function TriggerAgent() {
             </Card>
           )}
 
-          {/* Parsed Orders */}
+          {/* Parsed Orders Table */}
           {parsedOrders.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-foreground">
-                  Parsed Orders ({parsedOrders.length})
-                </h2>
-                <div className="text-sm text-muted-foreground">
-                  Total Value: ${parsedOrders.reduce((sum, order) => sum + (order.quantity * order.price), 0).toFixed(2)}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-2xl">
+                    Parsed Orders ({parsedOrders.length})
+                  </CardTitle>
+                  <div className="text-sm text-muted-foreground">
+                    Total Value: ${parsedOrders.reduce((sum, order) => sum + (order.quantity * order.price), 0).toFixed(2)}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid gap-4">
-                {parsedOrders.map((order) => {
-                  const SourceIcon = getSourceIcon(order.source);
-                  return (
-                    <Card key={order.id} className="hover:shadow-md transition-all duration-200">
-                      <Collapsible 
-                        open={openOrders[order.id]} 
-                        onOpenChange={() => toggleOrderDetails(order.id)}
-                      >
-                        <CardHeader className="cursor-pointer" onClick={() => toggleOrderDetails(order.id)}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <SourceIcon className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order # / Company</TableHead>
+                        <TableHead>Product Details</TableHead>
+                        <TableHead>Confidence</TableHead>
+                        <TableHead>Order Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedOrders.map((order) => {
+                        const SourceIcon = getSourceIcon(order.source);
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium">{order.id}</div>
+                                <div className="text-sm text-muted-foreground">{order.customerName}</div>
                               </div>
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <CardTitle className="text-lg">{order.customerName}</CardTitle>
-                                  {openOrders[order.id] ? (
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1 min-w-[250px]">
+                                <div className="text-sm font-medium">{order.productCode}</div>
+                                <div className="text-sm text-muted-foreground">{order.productName}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  Qty: {order.quantity} × ${order.price} = ${(order.quantity * order.price).toFixed(2)}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {order.productName} • Qty: {order.quantity} • ${(order.quantity * order.price).toFixed(2)}
-                                </p>
                               </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
+                            </TableCell>
+                            <TableCell>
                               <Badge variant="secondary">
-                                {Math.round(order.confidence * 100)}% confidence
+                                {Math.round(order.confidence * 100)}%
                               </Badge>
-                              <Badge variant="outline">
-                                {order.source}
-                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                  <SourceIcon className="h-4 w-4 text-primary" />
+                                </div>
+                                <span className="text-sm">{order.source}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
                               {order.published ? (
                                 <Badge variant="success">Published</Badge>
                               ) : (
                                 <Badge variant="warning">Pending</Badge>
                               )}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        
-                        <CollapsibleContent>
-                          <CardContent className="pt-0">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-muted rounded-lg">
-                              <div>
-                                <p className="text-sm text-muted-foreground">Product Code</p>
-                                <p className="font-medium">{order.productCode}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Quantity</p>
-                                <p className="font-medium">{order.quantity}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Unit Price</p>
-                                <p className="font-medium">${order.price}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Total Value</p>
-                                <p className="font-medium text-primary">${(order.quantity * order.price).toFixed(2)}</p>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-1">Delivery Address</p>
-                                <p className="text-sm bg-background p-2 rounded border">{order.deliveryAddress}</p>
-                              </div>
-
-                              {/* JSON Collapsible */}
-                              <details className="group">
-                                <summary className="cursor-pointer text-sm font-medium hover:text-primary">
-                                  View JSON Data
-                                </summary>
-                                <div className="mt-2">
-                                  <pre className="bg-background border p-3 rounded-md text-xs overflow-x-auto max-h-64">
-                                    {JSON.stringify(order.json, null, 2)}
-                                  </pre>
-                                </div>
-                              </details>
-
-                              {/* Action Buttons */}
-                              <div className="flex flex-wrap gap-2 justify-between items-center pt-4 border-t">
-                                <div className="flex gap-2">
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewSource(order)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Source
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewJSON(order)}
+                                >
+                                  <FileJson className="h-4 w-4 mr-1" />
+                                  JSON
+                                </Button>
+                                {!order.published && (
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => handlePublishOrder(order.id)}
                                     size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewSource(order);
-                                    }}
                                   >
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    View Source
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Publish
                                   </Button>
+                                )}
+                                {order.published && publishedOrderId === order.id && (
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => navigate('/fulfillment')}
                                     size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditOrder(order);
-                                    }}
-                                    disabled={order.published}
                                   >
-                                    <Edit3 className="h-4 w-4 mr-2" />
-                                    Edit Order
+                                    Go to Fulfillment
                                   </Button>
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  {order.published ? (
-                                    <>
-                                      <Button variant="outline" disabled size="sm">
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Published
-                                      </Button>
-                                      {publishedOrderId === order.id && (
-                                        <Button 
-                                          onClick={() => navigate('/fulfillment')}
-                                          size="sm"
-                                        >
-                                          Go to Fulfillment List
-                                        </Button>
-                                      )}
-                                    </>
-                                  ) : (
-                                     <Button 
-                                       onClick={(e) => {
-                                         e.stopPropagation();
-                                         handlePublishOrder(order.id);
-                                       }}
-                                       size="sm"
-                                     >
-                                       Verify & Publish to Adobe Commerce
-                                     </Button>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                            </div>
-                          </CardContent>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           )}
 
           {/* Modals */}
