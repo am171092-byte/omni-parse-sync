@@ -9,6 +9,7 @@ import { useOrderContext } from "@/contexts/OrderContext";
 import { LoadingSteps } from "@/components/ui/loading-steps";
 import { EmailSourceModal } from "@/components/modals/EmailSourceModal";
 import { EditOrderModal } from "@/components/modals/EditOrderModal";
+import { ViewJSONModal } from "@/components/modals/ViewJSONModal";
 import { generateMockOrders, ParsedOrder } from "@/data/mockOrders";
 import { Navbar } from "@/components/layout/Navbar";
 import { 
@@ -19,7 +20,8 @@ import {
   MessageSquare,
   Phone,
   Eye,
-  FileJson
+  FileJson,
+  Edit3
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,6 +37,7 @@ export default function TriggerAgent() {
   const [publishedOrderId, setPublishedOrderId] = useState<string | null>(null);
   const [sourceModalOpen, setSourceModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [jsonModalOpen, setJsonModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ParsedOrder | null>(null);
   const [currentStep, setCurrentStep] = useState<string>("");
 
@@ -97,6 +100,11 @@ export default function TriggerAgent() {
   };
 
   const handleViewJSON = (order: ParsedOrder) => {
+    setSelectedOrder(order);
+    setJsonModalOpen(true);
+  };
+
+  const handleEditOrder = (order: ParsedOrder) => {
     setSelectedOrder(order);
     setEditModalOpen(true);
   };
@@ -263,6 +271,15 @@ export default function TriggerAgent() {
                                   <FileJson className="h-4 w-4 mr-1" />
                                   JSON
                                 </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEditOrder(order)}
+                                  disabled={order.published}
+                                >
+                                  <Edit3 className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
                                 {!order.published && (
                                   <Button 
                                     onClick={() => handlePublishOrder(order.id)}
@@ -299,6 +316,11 @@ export default function TriggerAgent() {
                 isOpen={sourceModalOpen}
                 onClose={() => setSourceModalOpen(false)}
                 orderData={selectedOrder}
+              />
+              <ViewJSONModal
+                isOpen={jsonModalOpen}
+                onClose={() => setJsonModalOpen(false)}
+                order={selectedOrder}
               />
               <EditOrderModal
                 isOpen={editModalOpen}
