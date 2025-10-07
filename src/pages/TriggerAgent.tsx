@@ -200,17 +200,17 @@ export default function TriggerAgent() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[600px]">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Order # / Company</TableHead>
-                        <TableHead>Product Details</TableHead>
-                        <TableHead>Confidence</TableHead>
-                        <TableHead>Order Type</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="w-[150px]">Order # / Company</TableHead>
+                        <TableHead className="min-w-[200px]">Product Details</TableHead>
+                        <TableHead className="w-[100px]">Confidence</TableHead>
+                        <TableHead className="w-[120px]">Order Type</TableHead>
+                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-[400px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -218,83 +218,88 @@ export default function TriggerAgent() {
                         const SourceIcon = getSourceIcon(order.source);
                         return (
                           <TableRow key={order.id}>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div className="font-medium">{order.id}</div>
-                                <div className="text-sm text-muted-foreground">{order.customerName}</div>
+                            <TableCell className="w-[150px]">
+                              <div className="space-y-0.5">
+                                <div className="font-medium text-sm">{order.id}</div>
+                                <div className="text-xs text-muted-foreground truncate">{order.customerName}</div>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <div className="space-y-1 min-w-[250px]">
+                            <TableCell className="min-w-[200px]">
+                              <div className="space-y-0.5">
                                 <div className="text-sm font-medium">{order.productCode}</div>
-                                <div className="text-sm text-muted-foreground">{order.productName}</div>
+                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">{order.productName}</div>
                                 <div className="text-xs text-muted-foreground">
                                   Qty: {order.quantity} × ${order.price} = ${(order.quantity * order.price).toFixed(2)}
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">
+                            <TableCell className="w-[100px]">
+                              <Badge variant="secondary" className="text-xs">
                                 {Math.round(order.confidence * 100)}%
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                  <SourceIcon className="h-4 w-4 text-primary" />
+                            <TableCell className="w-[120px]">
+                              <div className="flex items-center gap-2">
+                                <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <SourceIcon className="h-3.5 w-3.5 text-primary" />
                                 </div>
-                                <span className="text-sm">{order.source}</span>
+                                <span className="text-xs truncate">{order.source}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="w-[100px]">
                               {order.published ? (
-                                <Badge variant="success">Published</Badge>
+                                <Badge variant="success" className="text-xs">Published</Badge>
                               ) : (
-                                <Badge variant="warning">Pending</Badge>
+                                <Badge variant="warning" className="text-xs">Pending</Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
+                            <TableCell className="w-[400px]">
+                              <div className="flex justify-end gap-1.5 flex-nowrap">
                                 <Button 
                                   variant="outline" 
                                   size="sm"
+                                  className="h-8 px-2"
                                   onClick={() => handleViewSource(order)}
                                 >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Source
+                                  <Eye className="h-3.5 w-3.5 mr-1" />
+                                  <span className="text-xs">Source</span>
                                 </Button>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
+                                  className="h-8 px-2"
                                   onClick={() => handleViewJSON(order)}
                                 >
-                                  <FileJson className="h-4 w-4 mr-1" />
-                                  JSON
+                                  <FileJson className="h-3.5 w-3.5 mr-1" />
+                                  <span className="text-xs">JSON</span>
                                 </Button>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
+                                  className="h-8 px-2"
                                   onClick={() => handleEditOrder(order)}
                                   disabled={order.published}
                                 >
-                                  <Edit3 className="h-4 w-4 mr-1" />
-                                  Edit
+                                  <Edit3 className="h-3.5 w-3.5 mr-1" />
+                                  <span className="text-xs">Edit</span>
                                 </Button>
                                 {!order.published && (
                                   <Button 
                                     onClick={() => handlePublishOrder(order.id)}
                                     size="sm"
+                                    className="h-8 px-2"
                                   >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Publish
+                                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                    <span className="text-xs">Publish</span>
                                   </Button>
                                 )}
                                 {order.published && publishedOrderId === order.id && (
                                   <Button 
                                     onClick={() => navigate('/fulfillment')}
                                     size="sm"
+                                    className="h-8 px-2 whitespace-nowrap"
                                   >
-                                    Go to Fulfillment
+                                    <span className="text-xs">Fulfillment</span>
                                   </Button>
                                 )}
                               </div>
@@ -304,7 +309,7 @@ export default function TriggerAgent() {
                       })}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           )}
